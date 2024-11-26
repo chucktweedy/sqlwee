@@ -17,7 +17,7 @@ class Top(Model):
     mass = FloatField()
     K = FloatField()
     B = FloatField()
-    my_button = Button()
+    my_button = ForeignKeyField(Button, backref='top')
 
     class Meta:
         database = db
@@ -43,9 +43,9 @@ class Rim(Model):
 
 
 class Box(Model):
-    my_top = Top()
-    my_bottom = Bottom()
-    my_rim = Rim()
+    my_top = ForeignKeyField(Top, backref='box')
+    my_bottom = ForeignKeyField(Bottom, backref='box')
+    my_rim = ForeignKeyField(Rim, backref='box')
 
     class Meta:
         database = db
@@ -54,9 +54,15 @@ class Box(Model):
 
 def sql_try():
     db.connect()
-    db.create_tables([Box, Top, Button, Bottom, Rim])
+    db.create_tables([Box, Top, Button, Bottom, Rim], safe=True)
 
+    new_button = Button.create(mass=.1)
+    new_top = Top.create(mass=.3, K=100000, B=12, my_button=new_button)
+    new_back = Bottom.create(mass=0.25, K=120000, B=2)
+    new_rim = Rim.create(mass=0.65, K=12000, B=200)
+    new_box = Box.create(my_top=new_top, my_bottom=new_back, my_rim=new_rim)
 
+    db.close()
 
 # yea
 if __name__ == '__main__':
